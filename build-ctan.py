@@ -40,7 +40,7 @@ with tempfile.TemporaryDirectory(prefix='terminaltrees-ctan-') as temporary:
         target = stage / name
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(ROOT / name, target)
-    # Retain the checked-in vector image; the existing checker verifies it.
+    # Image generation belongs to terminaltrees-tests/check.py.
     shutil.copyfile(ROOT / 'examples/comparison.svg', stage / 'examples/comparison.svg')
     env = dict(os.environ, TEXINPUTS=f'{stage}//{os.pathsep}{build}//{os.pathsep}')
     for name in ('examples/fitting-comparison.tex', 'examples/fitting-overview.tex',

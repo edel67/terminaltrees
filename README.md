@@ -163,6 +163,12 @@ The output directory must not exist. The builder creates `terminaltrees-doc.pdf`
 and `terminaltrees.zip`. The ZIP contains the files listed in
 [manifest.txt](manifest.txt) under `terminaltrees/`.
 
+## Versioning
+
+Version numbers follow [Semantic Versioning](https://semver.org/) for the
+documented environments and options. Incompatible interface changes require a
+new major version.
+
 ## License, credits and support
 
 Copyright 2026 Adi Edelhaus. Licensed under the [LaTeX Project Public License,

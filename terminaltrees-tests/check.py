@@ -10,7 +10,7 @@
 # The files comprising this work are listed in manifest.txt.
 # See LICENSE for the full license terms.
 
-"""Check geometry and the README render; requires Python 3, pdflatex and Poppler."""
+"""Check geometry and the README render. Requires Python 3, pdflatex and Poppler."""
 import argparse
 import hashlib
 import os
@@ -118,7 +118,7 @@ def layout(log):
                     else:
                         assert not (bottom < a[1] < top and
                             min(max(a[0], b[0]), right) > max(min(a[0], b[0]), left)), 'Horizontal edge collision'
-            # Check both rounded bends, including the parent-side departure.
+            # Labels must clear both the departure and arrival bends.
             direction = 1 if c[0] > p[0] else -1
             for x1, x2, y1, y2 in (
                 (p[0], p[0]+direction*radius, fork_y, fork_y+radius),
@@ -132,7 +132,7 @@ def layout(log):
 
 
 def curves(pdf, log):
-    """Check actual PDF paths in the controlled, single-page curve fixture."""
+    """Check rendered edge paths in a single-page fixture."""
     svg = pdf.with_suffix('.svg')
     result = run('pdftocairo', '-svg', str(pdf), str(svg))
     assert result.returncode == 0, result.stdout
@@ -154,7 +154,7 @@ def curves(pdf, log):
             if roundness:
                 assert max(points[::2])-min(points[::2]) < .01, 'Aligned branch is not vertical'
         else:
-            # Start and first cubic identify the shared parent-side departure.
+            # Sibling branches on the same side must share their departure curve.
             first_curve = re.search(r'\bC\s+([^MLCZ]+)', data)
             curve_end = list(map(float, first_curve[1].split()))[-2:]
             key = (path.get('transform'), *points[:2], curve_end[0] > points[0])
@@ -267,7 +267,7 @@ for name in ('fit', 'height', 'labels', 'adaptive', 'override', 'branches', 'cen
     compile_case(name)
 compile_case('fitting-comparison', directory='examples')
 
-# Reuse the verified pages as one equal-scale pair, not independently sized thumbnails.
+# The overview must preserve the relative sizes of the two verified pages.
 overview = ROOT/'examples/fitting-overview.tex'
 result = run('pdflatex', '-no-shell-escape', '-interaction=batchmode',
              '-halt-on-error', f'-output-directory={BUILD}', '-jobname=fitting-overview',
@@ -312,7 +312,7 @@ for suffix, value, error in (
     assert result.returncode != 0 and error in log, (name, log[-2000:])
     print(name, 'PASS (expected rejection)')
 
-# Compile the guide's actual examples, wrapping only the standalone snippets.
+# README snippets without a preamble need a minimal document wrapper.
 for i, example in enumerate(re.findall(r'```latex\n(.*?)```',
                                       (ROOT/'README.md').read_text(), re.S)):
     if r'\documentclass' not in example:
