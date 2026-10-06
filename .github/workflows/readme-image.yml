@@ -34,7 +34,8 @@ jobs:
 
       - name: Install rendering tools
         run: |
-          # TeX and Poppler need Ubuntu sources, not the runner's third-party feeds.
+          # Restrict APT to Ubuntu sources so unrelated third-party feeds
+          # cannot block installation.
           test -s /etc/apt/sources.list.d/ubuntu.sources
           apt_options=(
             -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/ubuntu.sources

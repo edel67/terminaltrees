@@ -11,7 +11,7 @@
 % See LICENSE for the full license terms.
 
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{terminaltrees}[2026/09/08 v0.5 Child-centered terminal trees]
+\ProvidesPackage{terminaltrees}[2026/10/06 v1.0.0 Child-centered terminal trees]
 \RequirePackage[edges]{forest}
 \RequirePackage{needspace}
 
@@ -37,7 +37,7 @@
     },
     where n children=0{tier=terminal}{},
     before drawing tree={
-      % Leave a forward shaft after PGF shortens it for the default arrow tip.
+      % Leave room for the arrow tip so the shaft does not reverse direction.
       TeX={% Discard whitespace emitted when PGF first instantiates the arrow.
         \setbox0=\hbox\bgroup
           \tikzset{thin}\pgfarrowtotallength{stealth}%
@@ -48,7 +48,7 @@
             \noexpand\forestset{terminaltrees arrow inset=\pgfmathresult pt}}%
           \pgfmathresult
       },
-      % Place children first so every fork is centered over its own endpoints.
+      % Each parent must use its children's final positions.
       terminaltrees index=0,
       for leaves={
         x/.pgfmath={terminaltrees_index()},
@@ -70,7 +70,7 @@
         if n children=0{}{%
           terminaltrees fork/.pgfmath={
             (y()+min_y()-aggregate_max("y()+max_y()","children"))/2},
-          % Siblings share the departure curve; the nearest side branch limits it.
+          % Use one radius for sibling branches so their departure curves coincide.
           terminaltrees bend/.pgfmath={max(0,min(
             roundness()*terminaltrees_fork(),
             terminaltrees_fork()-terminaltrees_arrow_inset()))},
@@ -128,7 +128,7 @@
       { \msg_fatal:nn { terminaltrees } { invalid-context } }
       {
         \par
-        % Capture the document's small-text style without changing node fonts.
+        % Use the document's \footnotesize as the default minimum.
         \group_begin:
           \footnotesize
           \dim_gset:Nn \g__terminaltrees_font_dim { \f@size pt }
@@ -142,7 +142,8 @@
                 {\l__terminaltrees_height_dim} <= 0pt } }
           { \msg_fatal:nn { terminaltrees } { invalid-size } }
           {
-            % Typeset once; TikZ has selected each node's font before this hook.
+            % Typeset once to avoid evaluating labels twice.
+            % The node hook runs after TikZ selects its font.
             \dim_gset:Nn \g__terminaltrees_font_dim { \maxdimen }
             \hbox_set:Nn \l__terminaltrees_box
               { \begin{forest}
@@ -151,7 +152,7 @@
                   #2
                 \end{forest} }
             \fp_set:Nn \l__terminaltrees_scale_fp
-              % TeX rounds dimension multipliers to 1/65536; round down to fit.
+              % Round down at TeX's 1/65536 scale precision to avoid overflow.
               { floor(65536 * min(1,
                   \dim_to_fp:n {\linewidth} /
                     \dim_to_fp:n {\box_wd:N \l__terminaltrees_box},
@@ -169,7 +170,8 @@
                 \box_scale:Nnn \l__terminaltrees_box
                   {\fp_use:N \l__terminaltrees_scale_fp}
                   {\fp_use:N \l__terminaltrees_scale_fp}
-                % Reserve space at the chosen scale, rather than shrinking to leftovers.
+                % Reserve space at the chosen scale instead of shrinking to
+                % the remaining page space.
                 \Needspace*{\dim_eval:n {\box_ht:N \l__terminaltrees_box +
                   \box_dp:N \l__terminaltrees_box + \baselineskip}}
                 \noindent\makebox[\linewidth][c]{\box_use:N \l__terminaltrees_box}\par
