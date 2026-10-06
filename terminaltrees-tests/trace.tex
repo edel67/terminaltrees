@@ -1,0 +1,30 @@
+% Copyright 2026 Adi Edelhaus
+%
+% terminaltrees is licensed under the LaTeX Project Public
+% License, version 1.3c or any later version.
+%
+% Maintenance status: maintained
+% Current maintainer: Adi Edelhaus
+% Issue reports: https://github.com/edel67/terminaltrees/issues
+%
+% The files comprising this work are listed in manifest.txt.
+% See LICENSE for the full license terms.
+
+\ExplSyntaxOn
+\cs_new_protected:Npn \terminaltrees_test_trace:
+  { \iow_term:x { FIT:~\fp_use:N\l__terminaltrees_scale_fp;
+      \dim_use:N\g__terminaltrees_font_dim;
+      \dim_eval:n{\box_wd:N\l__terminaltrees_box};
+      \dim_eval:n{\box_ht:N\l__terminaltrees_box+\box_dp:N\l__terminaltrees_box};
+      \the\linewidth;
+      \dim_use:N\l__terminaltrees_height_dim;
+      \dim_use:N\l__terminaltrees_min_font_dim;
+      \the\paperwidth;\the\paperheight } }
+\AddToHook{env/fittedterminaltree/end}{\terminaltrees_test_trace:}
+\ExplSyntaxOff
+\forestset{terminal tree/.append style={before drawing tree+={
+  TeX={\typeout{TREE: \foresteregister{leaf pitch}}},
+  TeX={\typeout{ROUNDNESS: \foresteregister{roundness}}},
+  TeX={\typeout{ARROW INSET: \foresteregister{terminaltrees arrow inset}}},
+  for tree={TeX={\typeout{BOX: \forestoption{x},\forestoption{y},\forestoption{min x},\forestoption{max x},\forestoption{min y},\forestoption{max y},\forestoption{n children},\forestoption{fork sep},\forestoption{terminaltrees radius},\forestoption{s sep}}}}
+}}}

@@ -1,0 +1,47 @@
+% Copyright 2026 Adi Edelhaus
+%
+% terminaltrees is licensed under the LaTeX Project Public
+% License, version 1.3c or any later version.
+%
+% Maintenance status: maintained
+% Current maintainer: Adi Edelhaus
+% Issue reports: https://github.com/edel67/terminaltrees/issues
+%
+% The files comprising this work are listed in manifest.txt.
+% See LICENSE for the full license terms.
+
+\documentclass{article}
+\usepackage[a4paper,margin=20mm]{geometry}
+\usepackage{terminaltrees}
+\input{terminaltrees-tests/trace.tex}
+\begin{document}
+Unequal subtree sizes (1, 2, 4 and 8 leaves):
+\begin{fittedterminaltree}
+  [ROOT
+    [ONE [a]]
+    [TWO [b] [c]]
+    [FOUR [d] [e] [f] [g]]
+    [EIGHT [h] [i] [j] [k] [l] [m] [n] [o]]]
+\end{fittedterminaltree}
+
+Nested asymmetry, unary chains, and wide off-center parents:
+\begin{fittedterminaltree}
+  [ROOT
+    [A wide asymmetric parent
+      [short]
+      [INNER [CHAIN [b]] [c] [d] [e]]]
+    [separator]
+    [A mirrored wide parent
+      [INNER [f] [g] [h] [CHAIN [i]]]
+      [last]]]
+\end{fittedterminaltree}
+
+Width pressure from an off-center internal label:
+\begin{fittedterminaltree}
+  [ROOT
+    [A deliberately wide asymmetric internal label
+      [a]
+      [B [b] [c] [d] [e] [f] [g] [h]]]
+    [z]]
+\end{fittedterminaltree}
+\end{document}

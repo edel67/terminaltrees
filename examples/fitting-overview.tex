@@ -1,0 +1,37 @@
+% Copyright 2026 Adi Edelhaus
+%
+% terminaltrees is licensed under the LaTeX Project Public
+% License, version 1.3c or any later version.
+%
+% Maintenance status: maintained
+% Current maintainer: Adi Edelhaus
+% Issue reports: https://github.com/edel67/terminaltrees/issues
+%
+% The files comprising this work are listed in manifest.txt.
+% See LICENSE for the full license terms.
+
+\documentclass{article}
+\usepackage[a4paper,landscape,margin=15mm]{geometry}
+\usepackage{graphicx}
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+\begin{document}
+{\LARGE\sffamily\bfseries Keep the type size, or keep the page size}\par\medskip
+Both choices use the same tree and Forest layout. You choose the paper size.
+\texttt{fittedterminaltree} shrinks the tree when needed without changing the page.
+\par\bigskip
+% Resize the pair once: equal-width thumbnails would misrepresent physical size.
+\resizebox{\linewidth}{!}{%
+  \setlength{\fboxsep}{0pt}%
+  \fbox{\includegraphics[page=1]{fitting-comparison.pdf}}\hspace{10mm}%
+  \fbox{\includegraphics[page=2]{fitting-comparison.pdf}}%
+}\par\bigskip
+\textbf{Both pages are shown at the same reduction.}
+The outer borders show the paper size. The inner frames show the text area.
+The unscaled tree keeps its 10pt labels. The fitted tree scales labels and
+branches together to fit the narrower text area without dropping below the minimum label size.
+\par\medskip
+Open \texttt{fitting-comparison.pdf} to inspect the pages at their original size.
+Its third page shows what happens when an unscaled tree exceeds the text width.
+Use the same zoom for each page to preserve the size comparison.
+\end{document}

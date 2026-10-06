@@ -1,0 +1,36 @@
+% Copyright 2026 Adi Edelhaus
+%
+% terminaltrees is licensed under the LaTeX Project Public
+% License, version 1.3c or any later version.
+%
+% Maintenance status: maintained
+% Current maintainer: Adi Edelhaus
+% Issue reports: https://github.com/edel67/terminaltrees/issues
+%
+% The files comprising this work are listed in manifest.txt.
+% See LICENSE for the full license terms.
+
+\documentclass{article}
+\usepackage[a4paper,margin=20mm]{geometry}
+\usepackage{terminaltrees}
+\input{terminaltrees-tests/trace.tex}
+\pagestyle{empty}
+\begin{document}
+Unscaled tree:
+\begin{fittedterminaltree}
+  [EXPR [EXPR [x]] [+] [EXPR [1]]]
+\end{fittedterminaltree}
+\begin{enumerate}
+\item Tree inside a narrower list:
+\begin{fittedterminaltree}
+  leaf pitch=24mm,
+  [ROOT [alpha] [beta] [gamma] [delta] [epsilon] [zeta] [eta] [theta]]
+\end{fittedterminaltree}
+\end{enumerate}
+\vspace*{170mm}
+This marker stays on the first page.
+\begin{fittedterminaltree}
+  [ROOT [LEFT [a] [b]] [RIGHT [c] [d]]]
+\end{fittedterminaltree}
+This marker follows the tree on the next page.
+\end{document}

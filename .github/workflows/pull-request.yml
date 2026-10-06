@@ -1,0 +1,59 @@
+# Copyright 2026 Adi Edelhaus
+#
+# terminaltrees is licensed under the LaTeX Project Public
+# License, version 1.3c or any later version.
+#
+# Maintenance status: maintained
+# Current maintainer: Adi Edelhaus
+# Issue reports: https://github.com/edel67/terminaltrees/issues
+#
+# The files comprising this work are listed in manifest.txt.
+# See LICENSE for the full license terms.
+
+name: Check pull request
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tree-check-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install rendering tools
+        run: |
+          test -s /etc/apt/sources.list.d/ubuntu.sources
+          apt_options=(
+            -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/ubuntu.sources
+            -o Dir::Etc::sourceparts=-
+          )
+          sudo apt-get "${apt_options[@]}" update
+          sudo apt-get "${apt_options[@]}" install --no-install-recommends -y texlive-latex-extra texlive-pictures poppler-utils
+
+      - name: Check trees and generate previews
+        env:
+          TMPDIR: ${{ runner.temp }}
+        run: python3 terminaltrees-tests/check.py --preview
+
+      - name: Upload validated renderings
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: tree-previews-pr-${{ github.event.pull_request.number }}-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/terminaltrees-check-*/*.pdf
+            ${{ runner.temp }}/terminaltrees-check-*/comparison.svg
+            !${{ runner.temp }}/terminaltrees-check-*/reject-*.pdf
+          if-no-files-found: error
+          retention-days: 14

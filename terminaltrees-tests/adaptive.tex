@@ -1,0 +1,30 @@
+% Copyright 2026 Adi Edelhaus
+%
+% terminaltrees is licensed under the LaTeX Project Public
+% License, version 1.3c or any later version.
+%
+% Maintenance status: maintained
+% Current maintainer: Adi Edelhaus
+% Issue reports: https://github.com/edel67/terminaltrees/issues
+%
+% The files comprising this work are listed in manifest.txt.
+% See LICENSE for the full license terms.
+
+\documentclass[12pt]{article}
+\usepackage[a5paper,margin=12mm]{geometry}
+\usepackage{terminaltrees}
+\input{terminaltrees-tests/trace.tex}
+\begin{document}
+Document typography:
+\begin{fittedterminaltree}[ROOT [alpha] [beta] [gamma]]\end{fittedterminaltree}
+\begingroup
+\Large
+Larger local typography:
+\begin{fittedterminaltree}[ROOT [alpha] [beta] [gamma]]\end{fittedterminaltree}
+\endgroup
+\begingroup
+\renewcommand{\footnotesize}{\fontsize{9.5}{11}\selectfont}
+Document-defined small-text style:
+\begin{fittedterminaltree}[ROOT [alpha] [beta] [gamma]]\end{fittedterminaltree}
+\endgroup
+\end{document}

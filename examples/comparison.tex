@@ -1,0 +1,55 @@
+% Copyright 2026 Adi Edelhaus
+%
+% terminaltrees is licensed under the LaTeX Project Public
+% License, version 1.3c or any later version.
+%
+% Maintenance status: maintained
+% Current maintainer: Adi Edelhaus
+% Issue reports: https://github.com/edel67/terminaltrees/issues
+%
+% The files comprising this work are listed in manifest.txt.
+% See LICENSE for the full license terms.
+
+\documentclass[border=12pt]{standalone}
+\usepackage{terminaltrees}
+\definecolor{accent}{HTML}{176B63}
+\definecolor{muted}{HTML}{555555}
+\pagecolor{white}
+
+% One tree body for both panels; only the layout style changes.
+\newcommand{\ExampleTree}[1]{%
+  \begin{forest}
+    #1
+    [EXPR
+      [EXPR [ID [x]]]
+      [+]
+      [EXPR
+        [EXPR [ID [y]]]
+        [*]
+        [EXPR [NUM [2]]]
+      ]
+    ]
+  \end{forest}%
+}
+\newsavebox{\defaulttree}
+\newsavebox{\terminaltree}
+\newlength{\panelwidth}
+\begin{document}
+\sbox{\defaulttree}{\ExampleTree{}}
+\sbox{\terminaltree}{\ExampleTree{terminal tree}}
+\setlength{\panelwidth}{\wd\defaulttree}
+\ifdim\wd\terminaltree>\panelwidth
+  \setlength{\panelwidth}{\wd\terminaltree}
+\fi
+\addtolength{\panelwidth}{2em}
+\begin{tabular}{@{}c@{\hspace{3em}}c@{}}
+  \sffamily\bfseries Default Forest &
+  \sffamily\bfseries\color{accent} Forest + terminaltrees \\[1.2em]
+  \makebox[\panelwidth]{\raisebox{-\height}{\usebox{\defaulttree}}} &
+  \makebox[\panelwidth]{\raisebox{-\height}{\usebox{\terminaltree}}} \\[1.6em]
+  \ttfamily\color{muted} No layout options &
+  \ttfamily\color{accent} terminal tree \\[1em]
+  \multicolumn{2}{c}{\sffamily\small\color{muted}
+    Identical tree and 10pt type. Neither panel is scaled.}
+\end{tabular}
+\end{document}

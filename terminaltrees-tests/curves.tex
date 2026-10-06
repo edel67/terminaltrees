@@ -1,0 +1,35 @@
+% Copyright 2026 Adi Edelhaus
+%
+% terminaltrees is licensed under the LaTeX Project Public
+% License, version 1.3c or any later version.
+%
+% Maintenance status: maintained
+% Current maintainer: Adi Edelhaus
+% Issue reports: https://github.com/edel67/terminaltrees/issues
+%
+% The files comprising this work are listed in manifest.txt.
+% See LICENSE for the full license terms.
+
+\documentclass{article}
+\usepackage[a4paper,margin=20mm]{geometry}
+\usepackage{terminaltrees}
+\input{terminaltrees-tests/trace.tex}
+\begin{document}
+Aligned center and unequal branch lengths:
+\begin{fittedterminaltree}
+  [ROOT [A [a] [b]] [c] [d] [e] [B [f] [g]]]
+\end{fittedterminaltree}
+
+A near-center branch limits the shared curve radius:
+\begin{fittedterminaltree}
+  for tree={l sep=10em},
+  [ROOT
+    [a] [b] [c] [d]
+    [WIDE [e] [f] [g] [h] [i] [j] [k] [l]]]
+\end{fittedterminaltree}
+
+Tall labels and a unary chain:
+\begin{fittedterminaltree}
+  [ROOT [left] [Tall\\multiline\\label [CHAIN [middle]]] [right]]
+\end{fittedterminaltree}
+\end{document}

@@ -1,0 +1,81 @@
+% Copyright 2026 Adi Edelhaus
+%
+% terminaltrees is licensed under the LaTeX Project Public
+% License, version 1.3c or any later version.
+%
+% Maintenance status: maintained
+% Current maintainer: Adi Edelhaus
+% Issue reports: https://github.com/edel67/terminaltrees/issues
+%
+% The files comprising this work are listed in manifest.txt.
+% See LICENSE for the full license terms.
+
+\documentclass{article}
+\usepackage[paperwidth=220mm,paperheight=140mm,textwidth=150mm,
+  top=15mm,bottom=15mm]{geometry}
+\usepackage{terminaltrees}
+\input{terminaltrees-tests/trace.tex}
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+\AddToHook{shipout/background}{%
+  \typeout{PAGE AREA: \the\pdfpagewidth;
+    \the\dimexpr1in+\hoffset+\oddsidemargin\relax;\the\textwidth}%
+  \begin{tikzpicture}[remember picture,overlay]
+    \draw[gray!50] (current page.north west)
+      ++({1in+\hoffset+\oddsidemargin},
+         {-1in-\voffset-\topmargin-\headheight-\headsep})
+      rectangle ++(\textwidth,-\textheight);
+  \end{tikzpicture}}
+
+% A deliberate minimum pitch makes this tree wider than the smaller text area.
+% All pages use the same tree and starting typography.
+\newcommand{\Example}[1]{%
+  #1{leaf pitch=16mm,
+    [ROOT [PAIR [alpha] [beta]] [PAIR [gamma] [delta]]
+      [PAIR [epsilon] [zeta]] [PAIR [eta] [theta]]]}}
+\newsavebox{\unfittedtree}
+\newcommand{\Unfitted}[1]{%
+  \sbox{\unfittedtree}{\begin{forest}terminal tree, #1\end{forest}}%
+  \typeout{UNFITTED WIDTH: \the\wd\unfittedtree}%
+  \typeout{UNFITTED AVAILABLE: \the\linewidth}%
+  \makebox[\linewidth][c]{\usebox{\unfittedtree}}\par}
+\newcommand{\Fitted}[1]{%
+  \begin{fittedterminaltree}#1\end{fittedterminaltree}}
+
+\begin{document}
+\vspace*{1em}
+{\Large\sffamily\bfseries Unfitted on larger paper}\par\medskip
+\texttt{forest} with \texttt{terminal tree}\par\medskip
+Keep 10pt labels by choosing paper large enough for the unscaled tree.
+\par\bigskip
+\Example{\Unfitted}
+\vfill
+Frame: text area (150mm wide). Paper: 220 by 140mm. Side margins: 35mm.
+You set the paper size in LaTeX. Neither environment changes it.
+\par\vspace*{1em}
+\clearpage
+\setlength{\paperwidth}{170mm}
+\pdfpagewidth=\paperwidth
+\newgeometry{left=35mm,textwidth=100mm,top=15mm,bottom=15mm}
+\vspace*{1em}
+{\Large\sffamily\bfseries Fitted on smaller paper}\par\medskip
+\texttt{fittedterminaltree}\par\medskip
+The tree shrinks uniformly to fit the text width. The page margins do not change.
+\par\bigskip
+\Example{\Fitted}
+\vfill
+Frame: text area (100mm wide). Paper: 170 by 140mm. Side margins: 35mm.
+Labels and branches scale together without dropping below the minimum label size.
+\par\vspace*{1em}
+\newpage
+\vspace*{1em}
+{\Large\sffamily\bfseries When the page is too small}\par\medskip
+\texttt{forest} with \texttt{terminal tree}\par\medskip
+The same unscaled tree on the smaller paper extends into the margins.
+\par\bigskip
+\Example{\Unfitted}
+\vfill
+This is a deliberately unsuitable page size, not a different tree layout.
+Choose larger paper or use fitting.
+\par\vspace*{1em}
+\end{document}

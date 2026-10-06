@@ -1,0 +1,59 @@
+# Copyright 2026 Adi Edelhaus
+#
+# terminaltrees is licensed under the LaTeX Project Public
+# License, version 1.3c or any later version.
+#
+# Maintenance status: maintained
+# Current maintainer: Adi Edelhaus
+# Issue reports: https://github.com/edel67/terminaltrees/issues
+#
+# The files comprising this work are listed in manifest.txt.
+# See LICENSE for the full license terms.
+
+name: Update README image
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: readme-image-main
+  cancel-in-progress: true
+
+jobs:
+  render:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install rendering tools
+        run: |
+          # TeX and Poppler need Ubuntu sources, not the runner's third-party feeds.
+          test -s /etc/apt/sources.list.d/ubuntu.sources
+          apt_options=(
+            -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/ubuntu.sources
+            -o Dir::Etc::sourceparts=-
+          )
+          sudo apt-get "${apt_options[@]}" update
+          sudo apt-get "${apt_options[@]}" install --no-install-recommends -y texlive-latex-extra texlive-pictures poppler-utils
+
+      - name: Check trees and regenerate the README image
+        run: python3 terminaltrees-tests/check.py --update-readme-image
+
+      - name: Commit the image if it changed
+        run: |
+          if git diff --quiet -- examples/comparison.svg; then
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- examples/comparison.svg
+          git commit -m 'Regenerate README image'
+          # A normal push rejects this render if main advanced during the build.
+          git push origin HEAD:main

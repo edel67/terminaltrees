@@ -1,0 +1,31 @@
+% Copyright 2026 Adi Edelhaus
+%
+% terminaltrees is licensed under the LaTeX Project Public
+% License, version 1.3c or any later version.
+%
+% Maintenance status: maintained
+% Current maintainer: Adi Edelhaus
+% Issue reports: https://github.com/edel67/terminaltrees/issues
+%
+% The files comprising this work are listed in manifest.txt.
+% See LICENSE for the full license terms.
+
+\documentclass{article}
+\usepackage[a4paper,margin=20mm]{geometry}
+\usepackage{terminaltrees}
+\input{terminaltrees-tests/trace.tex}
+\newcommand{\RoundnessCase}[1]{%
+  \begin{fittedterminaltree}
+    #1
+    [ROOT [A [a] [b]] [c] [d] [e] [B [f] [g]]]
+  \end{fittedterminaltree}
+}
+\begin{document}
+\RoundnessCase{roundness=0,}
+\RoundnessCase{roundness=0.25,}
+\RoundnessCase{roundness=0.5,}
+\RoundnessCase{roundness=0.75,}
+\RoundnessCase{roundness=1,}
+\RoundnessCase{roundness=0, for tree={edge={rounded corners=20pt}},}
+\RoundnessCase{for tree={edge={rounded corners=0pt}},}
+\end{document}
