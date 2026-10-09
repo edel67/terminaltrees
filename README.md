@@ -2,9 +2,9 @@
 
 Evenly spaced leaves. Rounded branches. Ordinary Forest syntax.
 
-![The same expression tree in default Forest (left) and terminaltrees (right). terminaltrees aligns x, +, y, *, and 2 at equal intervals on one baseline and rounds the side branches.](examples/comparison.svg)
+![The same expression tree in default Forest (left) and terminaltrees (right). terminaltrees aligns x, +, y, *, and 2 at equal intervals on one baseline and rounds the side branches.](https://raw.githubusercontent.com/edel67/terminaltrees/main/examples/comparison.svg)
 
-[Zoom the vector comparison](examples/comparison.svg).
+[Zoom the vector comparison](https://raw.githubusercontent.com/edel67/terminaltrees/main/examples/comparison.svg).
 
 Add `terminal tree` to a [Forest](https://ctan.org/pkg/forest) tree to align its
 leaves, center each parent between its first and last immediate children, and
@@ -15,11 +15,23 @@ Both trees above use the same content and 10pt type, without scaling. The left
 tree uses Forest's default layout. The right uses the layout provided by
 terminaltrees, built on Forest's spacing and drawing tools.
 
-## Draw a tree
+## Install and draw a tree
 
-Place `terminaltrees.sty` beside your document, or upload it to the same Overleaf
-project. Your TeX installation needs Forest and `needspace`; Forest loads
-PGF/TikZ. Compile this example with pdfLaTeX:
+With a current TeX Live installation, install the package using its package manager:
+
+```sh
+tlmgr install terminaltrees
+```
+
+If your operating system manages TeX Live, use its package manager instead.
+
+For manual installation, download the [CTAN archive](https://mirrors.ctan.org/graphics/pgf/contrib/terminaltrees.zip)
+and place `terminaltrees.sty` beside your document, or upload it to your Overleaf
+project. Your TeX installation also needs Forest and `needspace`. Forest loads
+PGF/TikZ. MiKTeX users can use this manual method if the package is not in their
+package catalogue.
+
+Compile this example with pdfLaTeX:
 
 ```latex
 \documentclass{article}
@@ -78,7 +90,7 @@ Use `forest` with `terminal tree` in those contexts. Custom output routines,
 multicolumn layouts and automatic captions are unsupported by the fitting form.
 
 The manual includes a side-by-side comparison on different paper sizes. To
-generate it, see [Check and preview](#check-and-preview).
+generate it, see the Check and preview section below.
 
 ## Adjust the layout
 
@@ -101,7 +113,7 @@ minimum-width layout.
 
 The style controls horizontal positions and branch routing. Custom anchors,
 shifted labels, overlays, edge labels and custom arrow styles need visual
-inspection. The [manual source](terminaltrees-doc.tex) documents the geometry,
+inspection. The [manual](https://mirrors.ctan.org/graphics/pgf/contrib/terminaltrees/terminaltrees-doc.pdf) documents the geometry,
 measurement limits and unsupported overrides in detail. The distribution
 archive includes the compiled `terminaltrees-doc.pdf`.
 
@@ -147,7 +159,7 @@ older run.
 The [image workflow](https://github.com/edel67/terminaltrees/blob/main/.github/workflows/readme-image.yml) rebuilds the vector
 comparison after pushes to `main`, runs the checks, and commits only if the
 image changed. Failed checks leave the previous image in place. The
-[example source](examples/comparison.tex)
+[example source](https://github.com/edel67/terminaltrees/blob/main/examples/comparison.tex)
 defines one tree shared by both sides of the comparison.
 
 ## Build the manual and distribution archive
@@ -161,7 +173,7 @@ python3 build-ctan.py /path/to/new-output-directory
 
 The output directory must not exist. The builder creates `terminaltrees-doc.pdf`
 and `terminaltrees.zip`. The ZIP contains the files listed in
-[manifest.txt](manifest.txt) under `terminaltrees/`.
+[manifest.txt](https://github.com/edel67/terminaltrees/blob/main/manifest.txt) under `terminaltrees/`.
 
 ## Versioning
 
@@ -172,11 +184,11 @@ new major version.
 ## License, credits and support
 
 Copyright 2026 Adi Edelhaus. Licensed under the [LaTeX Project Public License,
-version 1.3c or later](LICENSE). Maintenance status: maintained.
+version 1.3c or later](https://github.com/edel67/terminaltrees/blob/main/LICENSE). Maintenance status: maintained.
 Current maintainer: Adi Edelhaus.
 
 [Report an issue](https://github.com/edel67/terminaltrees/issues).
-The work's files are listed in [manifest.txt](manifest.txt).
+The work's files are listed in [manifest.txt](https://github.com/edel67/terminaltrees/blob/main/manifest.txt).
 
 Built on [Forest](https://ctan.org/pkg/forest) by Sašo Živanović,
 [PGF/TikZ](https://ctan.org/pkg/pgf), the [LaTeX kernel](https://www.latex-project.org/)
