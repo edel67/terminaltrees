@@ -51,10 +51,21 @@ size. Neither form chooses paper sizes or splits a tree across pages.
 \tableofcontents
 \newpage
 \section{Install and draw a tree}
-Place \texttt{terminaltrees.sty} beside your document, or upload it to the same
-Overleaf project. For a personal TeX installation, place it in
+With a current TeX Live installation, install the package using its package
+manager:
+\begin{lstlisting}[language={}]
+tlmgr install terminaltrees
+\end{lstlisting}
+If your operating system manages TeX Live, use its package manager instead.
+
+For manual installation, download the
+\href{https://mirrors.ctan.org/graphics/pgf/contrib/terminaltrees.zip}{CTAN archive}
+and place \texttt{terminaltrees.sty} beside your document, or upload it to your
+Overleaf project. MiKTeX users can use this method if the package is not in their
+package catalogue. For a personal TeX installation, place the file in
 \texttt{tex/latex/terminaltrees/} under your user TEXMF tree. Use your TeX
 distribution's instructions to refresh its filename database if required.
+
 The package loads Forest's edges library and needspace. Forest loads PGF/TikZ.
 Do not copy these dependencies into your document folder.
 
