@@ -25,11 +25,18 @@ tlmgr install terminaltrees
 
 If your operating system manages TeX Live, use its package manager instead.
 
+With MiKTeX, refresh the package catalogue and install
+[terminaltrees](https://miktex.org/packages/terminaltrees):
+
+```sh
+miktex packages update-package-database
+miktex packages install terminaltrees
+```
+
 For manual installation, download the [CTAN archive](https://mirrors.ctan.org/graphics/pgf/contrib/terminaltrees.zip)
 and place `terminaltrees.sty` beside your document, or upload it to your Overleaf
 project. Your TeX installation also needs Forest and `needspace`. Forest loads
-PGF/TikZ. MiKTeX users can use this manual method if the package is not in their
-package catalogue.
+PGF/TikZ.
 
 Compile this example with pdfLaTeX:
 
