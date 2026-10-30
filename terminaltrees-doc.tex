@@ -191,9 +191,10 @@ Every tree starts at the default, independently of earlier trees.
 \begin{forest}terminal tree,roundness=1 [R [a][b][c]]\end{forest}
 \end{tabular}
 \end{center}
-The available space caps the radius. Siblings share a departure curve and
-aligned branches stay straight. Values outside the range, physical units and
-non-finite values are fatal errors. PGF's math parser rejects malformed input.
+The available space caps the radius. Sibling branches on the same side share
+a departure curve. Aligned branches stay straight. Values outside the range,
+physical units and non-finite values are fatal errors. PGF's math parser
+rejects malformed input.
 
 \section{How the layout is calculated}
 Leaves receive positions $i p$ for indices $i=0,\ldots,N-1$, where $p$ is the

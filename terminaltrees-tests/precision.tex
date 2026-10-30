@@ -16,7 +16,7 @@
 \pagestyle{empty}
 \ExplSyntaxOn
 \AddToHook{env/fittedterminaltree/end}{
-  \dim_compare:nNnT {\box_wd:N\l__terminaltrees_box} > {\linewidth}
+  \dim_compare:nNnT {\box_wd:N\l__terminaltrees_tree_box} > {\linewidth}
     {\errmessage{Fitted~box~exceeds~available~width}}
   \fp_compare:nNnT {\l__terminaltrees_scale_fp} > {1}
     {\errmessage{Fitting~enlarged~the~tree}}

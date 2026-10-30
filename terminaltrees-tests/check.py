@@ -33,18 +33,16 @@ BUILD = Path(tempfile.mkdtemp(prefix='terminaltrees-check-'))
 print('Output directory:', BUILD, flush=True)
 ENV = dict(os.environ, max_print_line='1000')
 
-# Regression budgets, not guarantees of the converters' numerical precision.
-# Allow accumulated TeX/PGF arithmetic and decimal trace rounding in geometry.
+# Allow accumulated TeX/PGF arithmetic error and rounded geometry traces.
 GEOMETRY_TOLERANCE_PT = .002
-# Font traces are rounded text; exact threshold behavior is tested separately.
+# Allow rounding in font traces. The precision cases check exact thresholds.
 FONT_TRACE_TOLERANCE_PT = .001
-# Cairo path coordinates and pdfinfo page sizes have separate error budgets.
 PATH_TOLERANCE_BP = .01
 PAGE_SIZE_TOLERANCE_BP = .01
-# Allow an absolute scale difference of 0.001 in extracted preview text widths.
+# Compare the reduction factors inferred from preview text widths.
 DISPLAY_SCALE_TOLERANCE = .001
 
-# TeX points (pt) and PDF points (bp) use different inch definitions.
+# An inch contains 72.27 TeX points (pt) or 72 PDF points (bp).
 TEX_PT_TO_BP = 72 / 72.27
 TEX_PT_PER_MM = 72.27 / 25.4
 BP_PER_MM = TEX_PT_PER_MM * TEX_PT_TO_BP
@@ -329,12 +327,12 @@ for suffix, value, error in (
     assert result.returncode != 0 and error in log, (name, log[-2000:])
     print(name, 'PASS (expected rejection)')
 
-# Probe the real fitting environment with a node whose width is exactly 1000pt.
-# Equality must pass; a minimum even one scaled point higher must fail.
+# Check the font floor against a 1000pt node at natural and reduced sizes.
+# Accept equality and reject a minimum one scaled point above the fitted font size.
 for width, minimum, offsets in (
     ('1100pt', '10pt', (-1, 0, 1)),
     ('500pt', '5pt', (-1, 0, 1)),
-    # This ratio rounds upward as a TeX multiplier unless the scale is floored.
+    # Without scale flooring, TeX rounds this width ratio up and the box overflows.
     ('800.012pt', '1pt', (0,)),
 ):
     for offset in offsets:
@@ -354,7 +352,6 @@ for width, minimum, offsets in (
             print(name, 'PASS')
 
 
-# README snippets without a preamble need a minimal document wrapper.
 for i, example in enumerate(re.findall(r'```latex\n(.*?)```',
                                       (ROOT/'README.md').read_text(), re.S)):
     if r'\documentclass' not in example:

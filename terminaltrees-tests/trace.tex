@@ -13,12 +13,12 @@
 \ExplSyntaxOn
 \cs_new_protected:Npn \terminaltrees_test_trace:
   { \iow_term:x { FIT:~\fp_use:N\l__terminaltrees_scale_fp;
-      \dim_use:N\g__terminaltrees_font_dim;
-      \dim_eval:n{\box_wd:N\l__terminaltrees_box};
-      \dim_eval:n{\box_ht:N\l__terminaltrees_box+\box_dp:N\l__terminaltrees_box};
+      \dim_use:N\g__terminaltrees_smallest_font_dim;
+      \dim_eval:n{\box_wd:N\l__terminaltrees_tree_box};
+      \dim_eval:n{\box_ht:N\l__terminaltrees_tree_box+\box_dp:N\l__terminaltrees_tree_box};
       \the\linewidth;
-      \dim_use:N\l__terminaltrees_height_dim;
-      \dim_use:N\l__terminaltrees_min_font_dim;
+      \dim_use:N\l__terminaltrees_available_height_dim;
+      \dim_use:N\l__terminaltrees_minimum_font_dim;
       \the\paperwidth;\the\paperheight } }
 \AddToHook{env/fittedterminaltree/end}{\terminaltrees_test_trace:}
 \ExplSyntaxOff
@@ -26,5 +26,5 @@
   TeX={\typeout{TREE: \foresteregister{leaf pitch}}},
   TeX={\typeout{ROUNDNESS: \foresteregister{roundness}}},
   TeX={\typeout{ARROW INSET: \foresteregister{terminaltrees arrow inset}}},
-  for tree={TeX={\typeout{BOX: \forestoption{x},\forestoption{y},\forestoption{min x},\forestoption{max x},\forestoption{min y},\forestoption{max y},\forestoption{n children},\forestoption{fork sep},\forestoption{terminaltrees radius},\forestoption{s sep}}}}
+  for tree={TeX={\typeout{BOX: \forestoption{x},\forestoption{y},\forestoption{min x},\forestoption{max x},\forestoption{min y},\forestoption{max y},\forestoption{n children},\forestoption{fork sep},\forestoption{terminaltrees edge radius},\forestoption{s sep}}}}
 }}}
