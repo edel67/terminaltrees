@@ -33,6 +33,22 @@ BUILD = Path(tempfile.mkdtemp(prefix='terminaltrees-check-'))
 print('Output directory:', BUILD, flush=True)
 ENV = dict(os.environ, max_print_line='1000')
 
+# Regression budgets, not guarantees of the converters' numerical precision.
+# Allow accumulated TeX/PGF arithmetic and decimal trace rounding in geometry.
+GEOMETRY_TOLERANCE_PT = .002
+# Font traces are rounded text; exact threshold behavior is tested separately.
+FONT_TRACE_TOLERANCE_PT = .001
+# Cairo path coordinates and pdfinfo page sizes have separate error budgets.
+PATH_TOLERANCE_BP = .01
+PAGE_SIZE_TOLERANCE_BP = .01
+# Allow an absolute scale difference of 0.001 in extracted preview text widths.
+DISPLAY_SCALE_TOLERANCE = .001
+
+# TeX points (pt) and PDF points (bp) use different inch definitions.
+TEX_PT_TO_BP = 72 / 72.27
+TEX_PT_PER_MM = 72.27 / 25.4
+BP_PER_MM = TEX_PT_PER_MM * TEX_PT_TO_BP
+
 
 def run(*args):
     return subprocess.run(args, cwd=ROOT, env=ENV, text=True,
@@ -77,41 +93,41 @@ def layout(log):
 
         end, leaves = subtree(0)
         assert end == len(nodes)
-        assert max(nodes[i][1] for i in leaves)-min(nodes[i][1] for i in leaves) < .002
+        assert max(nodes[i][1] for i in leaves)-min(nodes[i][1] for i in leaves) < GEOMETRY_TOLERANCE_PT
         for a, b in zip(leaves, leaves[1:]):
-            assert abs(nodes[b][0]-nodes[a][0]-pitch) < .002
+            assert abs(nodes[b][0]-nodes[a][0]-pitch) < GEOMETRY_TOLERANCE_PT
         for i, a in enumerate(nodes):
             descendants = leaf_indices[i]
             children = [child for child, parent in parents.items() if parent == i]
             if children:
                 midpoint = (nodes[children[0]][0]+nodes[children[-1]][0])/2
-                assert abs(a[0]-midpoint) < .002, 'Parent is off its branch midpoint'
+                assert abs(a[0]-midpoint) < GEOMETRY_TOLERANCE_PT, 'Parent is off its branch midpoint'
             left = nodes[descendants[0]][0]-pitch/2
             right = nodes[descendants[-1]][0]+pitch/2
             padding = a[9]/2
-            assert a[0]+a[2]-padding >= left-.002, 'Label escapes left columns'
-            assert a[0]+a[3]+padding <= right+.002, 'Label escapes right columns'
+            assert a[0]+a[2]-padding >= left-GEOMETRY_TOLERANCE_PT, 'Label escapes left columns'
+            assert a[0]+a[3]+padding <= right+GEOMETRY_TOLERANCE_PT, 'Label escapes right columns'
             for b in nodes[i+1:]:
                 x = min(a[0]+a[3], b[0]+b[3])-max(a[0]+a[2], b[0]+b[2])
                 y = min(a[1]+a[5], b[1]+b[5])-max(a[1]+a[4], b[1]+b[4])
-                assert x <= .002 or y <= .002, 'Label collision'
+                assert x <= GEOMETRY_TOLERANCE_PT or y <= GEOMETRY_TOLERANCE_PT, 'Label collision'
         for child, parent in parents.items():
             c, p = nodes[child], nodes[parent]
             start = (p[0], p[1]+p[4])
             end = (c[0], c[1]+c[5])
             siblings = [i for i, ancestor in parents.items() if ancestor == parent]
             clearance = min(start[1]-nodes[i][1]-nodes[i][5] for i in siblings)
-            assert c[7] > 0 and abs(c[7]-clearance/2) < .002
+            assert c[7] > 0 and abs(c[7]-clearance/2) < GEOMETRY_TOLERANCE_PT
             side_runs = [abs(nodes[i][0]-p[0]) for i in siblings if nodes[i][0] != p[0]]
             radius = min([max(0, min(roundness*c[7], c[7]-arrow_inset)),
                           *(run/2 for run in side_runs)]) if c[0] != p[0] else 0
-            assert abs(c[8]-radius) < .002
+            assert abs(c[8]-radius) < GEOMETRY_TOLERANCE_PT
             fork_y = start[1]-c[7]
             points = [start, (p[0], fork_y), (c[0], fork_y), end]
             for a, b in zip(points, points[1:]):
                 for n in nodes:
-                    left, right = n[0]+n[2]+.002, n[0]+n[3]-.002
-                    bottom, top = n[1]+n[4]+.002, n[1]+n[5]-.002
+                    left, right = n[0]+n[2]+GEOMETRY_TOLERANCE_PT, n[0]+n[3]-GEOMETRY_TOLERANCE_PT
+                    bottom, top = n[1]+n[4]+GEOMETRY_TOLERANCE_PT, n[1]+n[5]-GEOMETRY_TOLERANCE_PT
                     if a[0] == b[0]:
                         assert not (left < a[0] < right and
                             min(max(a[1], b[1]), top) > max(min(a[1], b[1]), bottom)), 'Vertical edge collision'
@@ -127,7 +143,7 @@ def layout(log):
                 for n in nodes:
                     x = min(max(x1, x2), n[0]+n[3])-max(min(x1, x2), n[0]+n[2])
                     y = min(y2, n[1]+n[5])-max(y1, n[1]+n[4])
-                    assert x <= .002 or y <= .002, 'Rounded edge envelope collision'
+                    assert x <= GEOMETRY_TOLERANCE_PT or y <= GEOMETRY_TOLERANCE_PT, 'Rounded edge envelope collision'
     return pitches
 
 
@@ -148,11 +164,11 @@ def curves(pdf, log):
         data = path.get('d')
         assert data.count('C') == (2 if radius else 0), 'Missing or extra rounded bend'
         points = list(map(float, re.findall(r'-?\d*\.?\d+(?:e[+-]?\d+)?', data)))
-        assert all(a >= b-.01 for a, b in zip(points[1::2], points[3::2])), (
+        assert all(a >= b-PATH_TOLERANCE_BP for a, b in zip(points[1::2], points[3::2])), (
             'Drawn edge doubles back toward its parent')
         if not radius:
             if roundness:
-                assert max(points[::2])-min(points[::2]) < .01, 'Aligned branch is not vertical'
+                assert max(points[::2])-min(points[::2]) < PATH_TOLERANCE_BP, 'Aligned branch is not vertical'
         else:
             # Sibling branches on the same side must share their departure curve.
             first_curve = re.search(r'\bC\s+([^MLCZ]+)', data)
@@ -181,8 +197,9 @@ def compile_case(name, error=None, directory='terminaltrees-tests'):
             for row in re.findall(r'FIT: ([^\n]+)', log)]
     assert fits, 'Missing fit trace'
     for scale, font, width, height, available, usable_height, floor, _, _ in fits:
-        assert 0 < scale <= 1 and scale*font >= floor-.001
-        assert width <= available+.002 and height <= usable_height+.002, (
+        assert 0 < scale <= 1 and scale*font >= floor-FONT_TRACE_TOLERANCE_PT
+        assert (width <= available+GEOMETRY_TOLERANCE_PT and
+                height <= usable_height+GEOMETRY_TOLERANCE_PT), (
             name, width, available, height, usable_height)
     pitches = layout(log)
     info = run('pdfinfo', str(BUILD/f'{name}.pdf')).stdout
@@ -190,18 +207,18 @@ def compile_case(name, error=None, directory='terminaltrees-tests'):
     assert media, info
     for actual, expected in zip(map(float, media.groups()), fits[0][-2:]):
         if name != 'fitting-comparison':
-            assert abs(actual-expected*72/72.27) < .01, info
+            assert abs(actual-expected*TEX_PT_TO_BP) < PAGE_SIZE_TOLERANCE_BP, info
     text = run('pdftotext', str(BUILD/f'{name}.pdf'), '-').stdout
     if name == 'fitting-comparison':
         assert len(fits) == 1 and .8 < fits[0][0] < 1
         raw_width = float(re.search(r'UNFITTED WIDTH: ([\d.]+)pt', log)[1])
         assert raw_width > fits[0][4]
-        assert abs(raw_width*fits[0][0]-fits[0][2]) < .002
+        assert abs(raw_width*fits[0][0]-fits[0][2]) < GEOMETRY_TOLERANCE_PT
         available = list(map(float, re.findall(r'UNFITTED AVAILABLE: ([\d.]+)pt', log)))
         raw_widths = list(map(float, re.findall(r'UNFITTED WIDTH: ([\d.]+)pt', log)))
-        assert len(raw_widths) == 2 and abs(raw_widths[0]-raw_widths[1]) < .002
+        assert len(raw_widths) == 2 and abs(raw_widths[0]-raw_widths[1]) < GEOMETRY_TOLERANCE_PT
         assert available[0] > raw_width > available[1]
-        assert len(pitches) == 3 and max(pitches)-min(pitches) < .002
+        assert len(pitches) == 3 and max(pitches)-min(pitches) < GEOMETRY_TOLERANCE_PT
         sizes = run('pdfinfo', '-f', '1', '-l', '3', str(BUILD/f'{name}.pdf')).stdout
         dimensions = re.findall(r'Page\s+\d+ size:\s+([\d.]+) x ([\d.]+) pts', sizes)
         assert len(dimensions) == 3, sizes
@@ -209,11 +226,11 @@ def compile_case(name, error=None, directory='terminaltrees-tests'):
         assert len(areas) == 3
         for area in areas:
             paper, left, width = [float(v.replace('pt', '')) for v in area.split(';')]
-            assert abs(left-35*72.27/25.4) < .002
-            assert abs(paper-left-width-left) < .002
+            assert abs(left-35*TEX_PT_PER_MM) < GEOMETRY_TOLERANCE_PT
+            assert abs(paper-left-width-left) < GEOMETRY_TOLERANCE_PT
         for (width, height), paper_width in zip(dimensions, (220, 170, 170)):
-            assert abs(float(width)-paper_width*72/25.4) < .01
-            assert abs(float(height)-140*72/25.4) < .01
+            assert abs(float(width)-paper_width*BP_PER_MM) < PAGE_SIZE_TOLERANCE_BP
+            assert abs(float(height)-140*BP_PER_MM) < PAGE_SIZE_TOLERANCE_BP
         pages = text.split('\f')
         assert len(pages) == 4 and not pages[-1].strip()
         assert 'Unfitted' in pages[0] and 'Fitted' in pages[1]
@@ -285,7 +302,7 @@ for pdf in ('fitting-comparison', 'fitting-overview'):
                          for word in words if word.text == 'alpha'])
 assert list(map(len, label_widths)) == [3, 2], 'Missing comparison labels'
 display_scales = [shown/actual for actual, shown in zip(*label_widths)]
-assert abs(display_scales[0]-display_scales[1]) < .001, 'Unequal overview display scales'
+assert abs(display_scales[0]-display_scales[1]) < DISPLAY_SCALE_TOLERANCE, 'Unequal overview display scales'
 print('fitting-overview PASS (verified pages, one shared display scale)')
 for name, error in (
     ('reject-small', 'the 8.0pt minimum'),
@@ -311,6 +328,31 @@ for suffix, value, error in (
     log = (BUILD/f'{name}.log').read_text()
     assert result.returncode != 0 and error in log, (name, log[-2000:])
     print(name, 'PASS (expected rejection)')
+
+# Probe the real fitting environment with a node whose width is exactly 1000pt.
+# Equality must pass; a minimum even one scaled point higher must fail.
+for width, minimum, offsets in (
+    ('1100pt', '10pt', (-1, 0, 1)),
+    ('500pt', '5pt', (-1, 0, 1)),
+    # This ratio rounds upward as a TeX multiplier unless the scale is floored.
+    ('800.012pt', '1pt', (0,)),
+):
+    for offset in offsets:
+        name = f'precision-{width}-{offset}'
+        result = run('pdflatex', '-no-shell-escape', '-interaction=batchmode',
+                     '-halt-on-error', f'-output-directory={BUILD}', f'-jobname={name}',
+                     r'\def\FitWidth{' + width + r'}\def\MinimumSize{\dimexpr ' +
+                     minimum + f'{offset:+d}' + r'sp\relax}' +
+                     r'\input{terminaltrees-tests/precision.tex}')
+        log = (BUILD/f'{name}.log').read_text()
+        if offset > 0:
+            assert result.returncode != 0 and 'Fitting requires' in log, (name, log[-2000:])
+            print(name, 'PASS (expected rejection)')
+        else:
+            assert result.returncode == 0 and 'Overfull' not in log, (name, log[-2000:])
+            assert 'PRECISION PASS' in log, (name, log[-2000:])
+            print(name, 'PASS')
+
 
 # README snippets without a preamble need a minimal document wrapper.
 for i, example in enumerate(re.findall(r'```latex\n(.*?)```',

@@ -29,6 +29,7 @@ Source and supporting files:
   terminaltrees-tests/height.tex
   terminaltrees-tests/labels.tex
   terminaltrees-tests/override.tex
+  terminaltrees-tests/precision.tex
   terminaltrees-tests/reject-font.tex
   terminaltrees-tests/reject-inner.tex
   terminaltrees-tests/reject-option.tex

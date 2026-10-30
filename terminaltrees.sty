@@ -109,6 +109,8 @@
 \dim_new:N \l__terminaltrees_min_font_dim
 \dim_new:N \l__terminaltrees_height_dim
 \fp_new:N \l__terminaltrees_scale_fp
+% TeX quantizes dimension multipliers to one scaled point per point.
+\int_const:Nn \c__terminaltrees_scale_steps_int { \dim_to_decimal_in_sp:n {1pt} }
 \keys_define:nn { terminaltrees / fit }
   { minimum~label~size .dim_set:N = \l__terminaltrees_min_font_dim }
 \msg_new:nnn { terminaltrees } { too-small }
@@ -152,16 +154,16 @@
                   #2
                 \end{forest} }
             \fp_set:Nn \l__terminaltrees_scale_fp
-              % Round down at TeX's 1/65536 scale precision to avoid overflow.
-              { floor(65536 * min(1,
+              % Round down to keep TeX's multiplier rounding within the size limits.
+              { floor(\c__terminaltrees_scale_steps_int * min(1,
                   \dim_to_fp:n {\linewidth} /
                     \dim_to_fp:n {\box_wd:N \l__terminaltrees_box},
                   \dim_to_fp:n {\l__terminaltrees_height_dim} /
                     \dim_to_fp:n {\box_ht:N \l__terminaltrees_box +
-                                  \box_dp:N \l__terminaltrees_box})) / 65536 }
+                                  \box_dp:N \l__terminaltrees_box})) / \c__terminaltrees_scale_steps_int }
             \fp_compare:nTF
               { \l__terminaltrees_scale_fp * \dim_to_fp:n {\g__terminaltrees_font_dim}
-                  < \dim_to_fp:n {\l__terminaltrees_min_font_dim} - 0.0001 }
+                  < \dim_to_fp:n {\l__terminaltrees_min_font_dim} }
               { \msg_fatal:nnxx { terminaltrees } { too-small }
                   { \fp_eval:n { round(\l__terminaltrees_scale_fp *
                       \dim_to_fp:n {\g__terminaltrees_font_dim},2) } }
