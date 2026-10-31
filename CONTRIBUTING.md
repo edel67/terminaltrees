@@ -63,3 +63,6 @@ Version numbers follow [Semantic Versioning](https://semver.org/) for the
 documented environments and options. Incompatible interface changes require a
 new major version.
 
+Before publishing, give the Unreleased changelog entry its version and release
+date. Keep the GitHub release notes consistent with that entry.
+

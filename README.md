@@ -101,6 +101,7 @@ The package does not add tagged-PDF tree semantics or screen-reader support.
 
 ## Documentation and support
 
+- [Changelog](https://github.com/edel67/terminaltrees/blob/main/CHANGELOG.md): changes by release.
 - [User manual](https://mirrors.ctan.org/graphics/pgf/contrib/terminaltrees/terminaltrees-doc.pdf): examples, fitting, geometry, and compatibility limits.
 - [Contributor guide](https://github.com/edel67/terminaltrees/blob/main/CONTRIBUTING.md): checks, previews, and release builds.
 - [Report an issue](https://github.com/edel67/terminaltrees/issues).
