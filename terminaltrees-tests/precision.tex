@@ -1,0 +1,31 @@
+% Copyright 2026 Adi Edelhaus
+%
+% terminaltrees is licensed under the LaTeX Project Public
+% License, version 1.3c or any later version.
+%
+% Maintenance status: maintained
+% Current maintainer: Adi Edelhaus
+% Issue reports: https://github.com/edel67/terminaltrees/issues
+%
+% The files comprising this work are listed in manifest.txt.
+% See LICENSE for the full license terms.
+
+\documentclass{article}
+\usepackage[paperwidth=1200pt,paperheight=200pt,margin=20pt]{geometry}
+\usepackage{terminaltrees}
+\pagestyle{empty}
+\ExplSyntaxOn
+\AddToHook{env/fittedterminaltree/end}{
+  \dim_compare:nNnT {\box_wd:N\l__terminaltrees_tree_box} > {\linewidth}
+    {\errmessage{Fitted~box~exceeds~available~width}}
+  \fp_compare:nNnT {\l__terminaltrees_scale_fp} > {1}
+    {\errmessage{Fitting~enlarged~the~tree}}
+  \iow_term:n {PRECISION~PASS}
+}
+\ExplSyntaxOff
+\begin{document}
+\setlength\linewidth{\FitWidth}
+\begin{fittedterminaltree}(minimum label size=\MinimumSize)
+  [{},minimum width=1000pt,minimum height=10pt,inner sep=0pt,outer sep=0pt]
+\end{fittedterminaltree}
+\end{document}

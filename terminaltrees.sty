@@ -11,18 +11,19 @@
 % See LICENSE for the full license terms.
 
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{terminaltrees}[2026/10/09 v1.0.1 Child-centered terminal trees]
+\ProvidesPackage{terminaltrees}[2026/10/28 v1.0.2 Child-centered terminal trees]
 \RequirePackage[edges]{forest}
 \RequirePackage{needspace}
 
 \forestset{
-  declare count register={terminaltrees index},
+  declare count register={terminaltrees leaf index},
   declare dimen register={leaf pitch},
-  declare dimen register={terminaltrees fork},
-  declare dimen register={terminaltrees bend},
+  declare dimen register={terminaltrees fork distance},
+  declare dimen register={terminaltrees bend radius},
   declare dimen register={terminaltrees arrow inset},
   declare toks register={roundness},
-  declare dimen={terminaltrees radius}{0pt},
+  declare dimen={terminaltrees edge radius}{0pt},
+  %
   terminal tree/.style={
     baseline=(current bounding box.north),
     leaf pitch=0pt,
@@ -36,6 +37,7 @@
       forked edge',
     },
     where n children=0{tier=terminal}{},
+    %
     before drawing tree={
       % Leave room for the arrow tip so the shaft does not reverse direction.
       TeX={% Discard whitespace emitted when PGF first instantiates the arrow.
@@ -48,41 +50,65 @@
             \noexpand\forestset{terminaltrees arrow inset=\pgfmathresult pt}}%
           \pgfmathresult
       },
-      % Each parent must use its children's final positions.
-      terminaltrees index=0,
+      %
+      % Number leaf columns before centering parents over their children.
+      terminaltrees leaf index=0,
       for leaves={
-        x/.pgfmath={terminaltrees_index()},
-        terminaltrees index+=1,
+        x/.pgfmath={terminaltrees_leaf_index()},
+        terminaltrees leaf index+=1,
       },
+      %
+      % Process children first so each midpoint uses their final positions.
       for tree children-first={
-        if n children=0{}{x/.pgfmath={(x("!1")+x("!l"))/2}},
+        if n children=0{}{
+          x/.pgfmath={(x("!1")+x("!l"))/2},
+        },
       },
-      % Keep every label inside its subtree's columns, including padding.
-      % Child-centered parents need clearance to the nearer column boundary.
+      %
+      % Column boundaries lie half a pitch beyond the outer leaf centers.
+      % Fit each label and half the sibling gap within its nearer boundary.
       for tree={
-        leaf pitch/.pgfmath={max(leaf_pitch(),
-          (max(abs(min_x()),abs(max_x()))+s_sep()/2)/
-          min(x()-x("!{first leaf'}")+0.5,x("!{last leaf'}")-x()+0.5))},
+        leaf pitch/.pgfmath={
+          max(leaf_pitch(),
+            (max(abs(min_x()),abs(max_x()))+s_sep()/2) /
+            min(
+              x()-x("!{first leaf'}")+0.5,
+              x("!{last leaf'}")-x()+0.5
+            )
+          )
+        },
       },
       for tree={x/.pgfmath={x()*leaf_pitch()}},
-      % Keep forks and bends in the shared clearance above the child labels.
+      %
+      % Place each fork halfway through the clearance above the child labels.
       for tree={
         if n children=0{}{%
-          terminaltrees fork/.pgfmath={
+          terminaltrees fork distance/.pgfmath={
             (y()+min_y()-aggregate_max("y()+max_y()","children"))/2},
-          % Use one radius for sibling branches so their departure curves coincide.
-          terminaltrees bend/.pgfmath={max(0,min(
-            roundness()*terminaltrees_fork(),
-            terminaltrees_fork()-terminaltrees_arrow_inset()))},
+          %
+          % Siblings use one radius so same-side branches share a departure curve.
+          terminaltrees bend radius/.pgfmath={
+            max(0,min(
+              roundness()*terminaltrees_fork_distance(),
+              terminaltrees_fork_distance()-terminaltrees_arrow_inset()
+            ))
+          },
+          %
+          % The two bends must fit within the horizontal parent-child distance.
           for children={
             if={x()!=x("!u")}{
-              terminaltrees bend/.pgfmath={min(terminaltrees_bend(),abs(x()-x("!u"))/2)},
+              terminaltrees bend radius/.pgfmath={
+                min(terminaltrees_bend_radius(),abs(x()-x("!u"))/2)
+              },
             }{},
           },
+          %
           for children={
-            fork sep/.register=terminaltrees fork,
-            terminaltrees radius/.pgfmath={ifthenelse(x()==x("!u"),0,terminaltrees_bend())},
-            edge+={rounded corners=\forestoption{terminaltrees radius}},
+            fork sep/.register=terminaltrees fork distance,
+            terminaltrees edge radius/.pgfmath={
+              ifthenelse(x()==x("!u"),0,terminaltrees_bend_radius())
+            },
+            edge+={rounded corners=\forestoption{terminaltrees edge radius}},
           },
         },
       },
@@ -91,8 +117,10 @@
 }
 
 \ExplSyntaxOn
+
 \msg_new:nnn { terminaltrees } { invalid-roundness }
   { roundness~must~be~a~unitless~number~from~0~to~1. }
+
 \forestset{
   roundness/.code={
     \pgfmathparse{#1}
@@ -104,13 +132,19 @@
       { \msg_fatal:nn { terminaltrees } { invalid-roundness } }
   },
 }
-\box_new:N \l__terminaltrees_box
-\dim_new:N \g__terminaltrees_font_dim
-\dim_new:N \l__terminaltrees_min_font_dim
-\dim_new:N \l__terminaltrees_height_dim
+
+\box_new:N \l__terminaltrees_tree_box
+\dim_new:N \g__terminaltrees_smallest_font_dim
+\dim_new:N \l__terminaltrees_minimum_font_dim
+\dim_new:N \l__terminaltrees_available_height_dim
 \fp_new:N \l__terminaltrees_scale_fp
+
+% TeX quantizes dimension multipliers to one scaled point per point.
+\int_const:Nn \c__terminaltrees_scale_steps_int { \dim_to_decimal_in_sp:n {1pt} }
+
 \keys_define:nn { terminaltrees / fit }
-  { minimum~label~size .dim_set:N = \l__terminaltrees_min_font_dim }
+  { minimum~label~size .dim_set:N = \l__terminaltrees_minimum_font_dim }
+
 \msg_new:nnn { terminaltrees } { too-small }
   { Fitting~requires~#1pt~node~text,~below~the~#2~minimum.~
     Increase~an~undersized~node~font,~wrap~labels,~or~split~the~tree~manually;~
@@ -119,66 +153,81 @@
   { fittedterminaltree~requires~normal~document~flow,~not~a~box~or~float. }
 \msg_new:nnn { terminaltrees } { invalid-size }
   { The~minimum~label~size~and~available~page~dimensions~must~be~positive. }
-\cs_new_protected:Npn \__terminaltrees_record_font:
-  { \dim_gset:Nn \g__terminaltrees_font_dim
-      { \dim_min:nn { \g__terminaltrees_font_dim } { \f@size pt } } }
+
+\cs_new_protected:Npn \__terminaltrees_record_smallest_font:
+  { \dim_gset:Nn \g__terminaltrees_smallest_font_dim
+      { \dim_min:nn { \g__terminaltrees_smallest_font_dim } { \f@size pt } } }
+
 \cs_new_protected:Npn \__terminaltrees_fit:nn #1#2
   {
     \mode_if_inner:TF
       { \msg_fatal:nn { terminaltrees } { invalid-context } }
       {
         \par
-        % Use the document's \footnotesize as the default minimum.
         \group_begin:
           \footnotesize
-          \dim_gset:Nn \g__terminaltrees_font_dim { \f@size pt }
+          \dim_gset:Nn \g__terminaltrees_smallest_font_dim { \f@size pt }
         \group_end:
-        \dim_set_eq:NN \l__terminaltrees_min_font_dim \g__terminaltrees_font_dim
+        %
+        \dim_set_eq:NN \l__terminaltrees_minimum_font_dim \g__terminaltrees_smallest_font_dim
         \keys_set:nn { terminaltrees / fit } {#1}
-        \dim_set:Nn \l__terminaltrees_height_dim { \textheight - \baselineskip }
+        \dim_set:Nn \l__terminaltrees_available_height_dim { \textheight - \baselineskip }
+        %
         \bool_lazy_or:nnTF
-          { \dim_compare_p:n { \l__terminaltrees_min_font_dim <= 0pt } }
+          { \dim_compare_p:n { \l__terminaltrees_minimum_font_dim <= 0pt } }
           { \dim_compare_p:n { \dim_min:nn {\linewidth}
-                {\l__terminaltrees_height_dim} <= 0pt } }
+                {\l__terminaltrees_available_height_dim} <= 0pt } }
           { \msg_fatal:nn { terminaltrees } { invalid-size } }
           {
-            % Typeset once to avoid evaluating labels twice.
+            % Typeset labels once so fitting does not repeat their side effects.
             % The node hook runs after TikZ selects its font.
-            \dim_gset:Nn \g__terminaltrees_font_dim { \maxdimen }
-            \hbox_set:Nn \l__terminaltrees_box
+            \dim_gset:Nn \g__terminaltrees_smallest_font_dim { \maxdimen }
+            \hbox_set:Nn \l__terminaltrees_tree_box
               { \begin{forest}
                   terminal~tree,
-                  for~tree={execute~at~begin~node={\__terminaltrees_record_font:}},
+                  for~tree={execute~at~begin~node={\__terminaltrees_record_smallest_font:}},
                   #2
                 \end{forest} }
+            %
+            % Round down so TeX cannot enlarge the fitted box beyond its limits.
             \fp_set:Nn \l__terminaltrees_scale_fp
-              % Round down at TeX's 1/65536 scale precision to avoid overflow.
-              { floor(65536 * min(1,
-                  \dim_to_fp:n {\linewidth} /
-                    \dim_to_fp:n {\box_wd:N \l__terminaltrees_box},
-                  \dim_to_fp:n {\l__terminaltrees_height_dim} /
-                    \dim_to_fp:n {\box_ht:N \l__terminaltrees_box +
-                                  \box_dp:N \l__terminaltrees_box})) / 65536 }
-            \fp_compare:nTF
-              { \l__terminaltrees_scale_fp * \dim_to_fp:n {\g__terminaltrees_font_dim}
-                  < \dim_to_fp:n {\l__terminaltrees_min_font_dim} - 0.0001 }
-              { \msg_fatal:nnxx { terminaltrees } { too-small }
-                  { \fp_eval:n { round(\l__terminaltrees_scale_fp *
-                      \dim_to_fp:n {\g__terminaltrees_font_dim},2) } }
-                  { \dim_use:N \l__terminaltrees_min_font_dim } }
               {
-                \box_scale:Nnn \l__terminaltrees_box
+                floor(
+                  \c__terminaltrees_scale_steps_int * min(
+                    1,
+                    \dim_to_fp:n {\linewidth} /
+                      \dim_to_fp:n {\box_wd:N \l__terminaltrees_tree_box},
+                    \dim_to_fp:n {\l__terminaltrees_available_height_dim} /
+                      \dim_to_fp:n {
+                        \box_ht:N \l__terminaltrees_tree_box +
+                        \box_dp:N \l__terminaltrees_tree_box
+                      }
+                  )
+                ) / \c__terminaltrees_scale_steps_int
+              }
+            %
+            \fp_compare:nTF
+              { \l__terminaltrees_scale_fp * \dim_to_fp:n {\g__terminaltrees_smallest_font_dim}
+                  < \dim_to_fp:n {\l__terminaltrees_minimum_font_dim} }
+              { \msg_fatal:nnxx { terminaltrees } { too-small }
+                  % Round only the reported font size to two decimal places.
+                  { \fp_eval:n { round(\l__terminaltrees_scale_fp *
+                      \dim_to_fp:n {\g__terminaltrees_smallest_font_dim},2) } }
+                  { \dim_use:N \l__terminaltrees_minimum_font_dim } }
+              {
+                \box_scale:Nnn \l__terminaltrees_tree_box
                   {\fp_use:N \l__terminaltrees_scale_fp}
                   {\fp_use:N \l__terminaltrees_scale_fp}
-                % Reserve space at the chosen scale instead of shrinking to
-                % the remaining page space.
-                \Needspace*{\dim_eval:n {\box_ht:N \l__terminaltrees_box +
-                  \box_dp:N \l__terminaltrees_box + \baselineskip}}
-                \noindent\makebox[\linewidth][c]{\box_use:N \l__terminaltrees_box}\par
+                %
+                % Keep the chosen scale when moving the tree to the next page.
+                \Needspace*{\dim_eval:n {\box_ht:N \l__terminaltrees_tree_box +
+                  \box_dp:N \l__terminaltrees_tree_box + \baselineskip}}
+                \noindent\makebox[\linewidth][c]{\box_use:N \l__terminaltrees_tree_box}\par
               }
           }
       }
   }
+
 % Parenthesized options cannot consume Forest's opening root bracket.
 \NewDocumentEnvironment{fittedterminaltree}{ D(){} +b }
   { \__terminaltrees_fit:nn {#1}{#2} } {}
