@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## [1.0.2] - 2026-10-31
 
 - Reject fitted trees whose labels fall below the requested minimum size. Previously, labels could be up to 0.0001pt below the limit. Public options and tree geometry are unchanged.
 - Add MiKTeX installation instructions.
@@ -22,5 +22,6 @@ Initial release.
 - Provide `leaf pitch` and `roundness` options for spacing and curvature.
 - Add `fittedterminaltree` to shrink a whole tree to the existing page layout, subject to a minimum label size. It can move the tree to the next page but does not resize the paper or split trees across pages.
 
+[1.0.2]: https://github.com/edel67/terminaltrees/releases/tag/v1.0.2
 [1.0.1]: https://github.com/edel67/terminaltrees/releases/tag/v1.0.1
 [1.0.0]: https://github.com/edel67/terminaltrees/releases/tag/v1.0.0
